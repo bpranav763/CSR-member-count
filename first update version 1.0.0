@@ -1,0 +1,56 @@
+import discord
+import requests
+import asyncio
+
+# --- CONFIG ---
+TOKEN = 'MTM5ODYwODU0MTMyOTM5MTY5OA.GZYyzY.MmJPukXs-LFJcRGUGuYfpWvYwYxUQmsewaBdMs'
+CHANNEL_ID = 1432803218919919666          # Replace with your channel or thread ID
+GROUP_ID = '1003228779'  # Replace with your Roblox group ID
+GUILD_IMAGE = 'https://tr.rbxcdn.com/180DAY-929c99c9ad05b139c8851f873606876e/150/150/Image/Webp/noFilter'   # Set to your Roblox guild/group logo (must be a public URL!)
+UPDATE_INTERVAL = 300            # In seconds
+
+intents = discord.Intents.default()
+client = discord.Client(intents=intents)
+
+async def get_member_count(group_id):
+    url = f"https://groups.roblox.com/v1/groups/{group_id}"
+    response = requests.get(url)
+    if response.status_code == 200:
+        data = response.json()
+        return data.get("memberCount", "Error")
+    return "Error"
+
+async def update_permanent_message():
+    await client.wait_until_ready()
+    channel = client.get_channel(CHANNEL_ID)
+    if channel is None:
+        print("ERROR: Channel not found.")
+        return
+
+    # Only send a single message and update it
+    message = await channel.send("Roblox Group Member Counter Starting...")  # Send the first message only once
+    last_count = None
+    while True:
+        count = await get_member_count(GROUP_ID)
+        if count != last_count:
+            embed = discord.Embed(
+                title="[SBO:R] Champions of the Shattered Realm",
+                description=f"Current Members:",
+                color=discord.Color.green()
+            )
+            embed.set_thumbnail(url=GUILD_IMAGE)
+            embed.add_field(
+                name="Member Count",
+                value=f"`{count}`",   # boxed look using code formatting
+                inline=False
+            )
+            await message.edit(content="", embed=embed)
+            last_count = count
+        await asyncio.sleep(UPDATE_INTERVAL)
+
+@client.event
+async def on_ready():
+    print(f'Logged in as {client.user}')
+    client.loop.create_task(update_permanent_message())
+
+client.run(TOKEN)
