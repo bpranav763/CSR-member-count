@@ -1,0 +1,204 @@
+import discord
+import requests
+import asyncio
+from discord.ext import commands
+
+# --- CONFIG ---
+TOKEN = 'MTQzMzE2OTMyNDU1NzcyOTkxNQ.GSRyVz.wfeFTQK5FcpbHjrOPr-s_SqfGvnVdpL9dP7zSg'
+CHANNEL_ID = 1432803218919919666
+GROUP_ID = '1003228779'
+GUILD_IMAGE = 'https://tr.rbxcdn.com/180DAY-929c99c9ad05b139c8851f873606876e/150/150/Image/Webp/noFilter'
+UPDATE_INTERVAL = 300
+
+BOT_VERSION = "1.0.1"
+BOT_UPDATE = "2nd update"
+BOT_AUTHOR = "kikusuka"
+BOT_CREATED = "October 24, 2025"
+
+intents = discord.Intents.default()
+intents.members = True
+bot = commands.Bot(command_prefix="/", intents=intents)
+
+# --- Permissions check for admin ---
+def admin_only(interaction: discord.Interaction) -> bool:
+    return interaction.user.guild_permissions.administrator
+
+# --- Member Counter Updater ---
+async def get_member_count(group_id):
+    url = f"https://groups.roblox.com/v1/groups/{group_id}"
+    response = requests.get(url)
+    if response.status_code == 200:
+        data = response.json()
+        return data.get("memberCount", "Error")
+    return "Error"
+
+@bot.event
+async def on_ready():
+    print(f"Logged in as {bot.user}")
+    try:
+        synced = await bot.tree.sync()
+        print(f"Synced {len(synced)} slash commands")
+    except Exception as e:
+        print(f"Command sync error: {e}")
+    bot.loop.create_task(update_permanent_message())
+
+async def update_permanent_message():
+    await bot.wait_until_ready()
+    channel = bot.get_channel(CHANNEL_ID)
+    if channel is None:
+        print("ERROR: Channel not found.")
+        return
+
+    message = await channel.send("Roblox Group Member Counter Starting...")
+    last_count = None
+    while True:
+        count = await get_member_count(GROUP_ID)
+        if count != last_count:
+            embed = discord.Embed(
+                title="[SBO:R] Champions of the Shattered Realm",
+                description=f"Current Members:",
+                color=discord.Color.green()
+            )
+            embed.set_thumbnail(url=GUILD_IMAGE)
+            embed.add_field(
+                name="Member Count",
+                value=f"`{count}`",
+                inline=False
+            )
+            await message.edit(content="", embed=embed)
+            last_count = count
+        await asyncio.sleep(UPDATE_INTERVAL)
+
+# --- Auto Welcome DM ---
+@bot.event
+async def on_member_join(member):
+    try:
+        await member.send(
+            "We are happy to have you here!\nWelcome to Champions of the Shattered Realm."
+        )
+    except Exception:
+        pass
+
+# --- SLASH COMMANDS ---
+@bot.tree.command(name="aboutthisbot", description="Show info about the bot.")
+async def aboutthisbot(interaction: discord.Interaction):
+    embed = discord.Embed(
+        title="About CSR SYSTEM",
+        description="Your trusted CSR Guild utility bot.",
+        color=discord.Color.blue()
+    )
+    embed.add_field(name="Created on", value=BOT_CREATED, inline=True)
+    embed.add_field(name="Current Version", value=BOT_VERSION, inline=True)
+    embed.add_field(name="Update", value=BOT_UPDATE, inline=True)
+    embed.add_field(
+        name="Credits",
+        value="Bot made by the great **kikusuka** for the Champions of the Shattered Realm guild.",
+        inline=False
+    )
+    await interaction.response.send_message(embed=embed, ephemeral=True)
+
+@bot.tree.command(name="sync", description="Sync things! (Admins only)")
+async def sync(interaction: discord.Interaction):
+    if not admin_only(interaction):
+        await interaction.response.send_message("You must be an administrator to use this!", ephemeral=True)
+        return
+    await interaction.response.send_message("Synced!", ephemeral=True)
+
+@bot.tree.command(name="announcement", description="Send an announcement in any channel. (Admins only)")
+async def announcement(
+    interaction: discord.Interaction,
+    channel: discord.TextChannel,
+    message: str
+):
+    if not admin_only(interaction):
+        await interaction.response.send_message("You must be an administrator to use this!", ephemeral=True)
+        return
+    await channel.send(message)
+    await interaction.response.send_message(f"Announcement sent to {channel.mention}", ephemeral=True)
+
+@bot.tree.command(name="kick", description="Kick a member. (Admins only, must give reason)")
+async def kick(
+    interaction: discord.Interaction,
+    member: discord.Member,
+    reason: str
+):
+    if not admin_only(interaction):
+        await interaction.response.send_message("You must be an administrator to use this!", ephemeral=True)
+        return
+    await member.kick(reason=reason)
+    await interaction.response.send_message(f"{member.mention} has been kicked for: {reason}", ephemeral=True)
+
+@bot.tree.command(name="ban", description="Ban a member. (Admins only, must give reason)")
+async def ban(
+    interaction: discord.Interaction,
+    member: discord.Member,
+    reason: str
+):
+    if not admin_only(interaction):
+        await interaction.response.send_message("You must be an administrator to use this!", ephemeral=True)
+        return
+    await member.ban(reason=reason)
+    await interaction.response.send_message(f"{member.mention} has been banned for: {reason}", ephemeral=True)
+
+@bot.tree.command(name="mute", description="Mute a member. (Admins only, must give reason)")
+async def mute(
+    interaction: discord.Interaction,
+    member: discord.Member,
+    reason: str
+):
+    if not admin_only(interaction):
+        await interaction.response.send_message("You must be an administrator to use this!", ephemeral=True)
+        return
+    mute_role = discord.utils.get(member.guild.roles, name="Muted")
+    if mute_role:
+        await member.add_roles(mute_role, reason=reason)
+        await interaction.response.send_message(f"{member.mention} has been muted for: {reason}", ephemeral=True)
+    else:
+        await interaction.response.send_message("Muted role not found!", ephemeral=True)
+
+@bot.tree.command(name="help", description="Show commands and bot capabilities!")
+async def help_command(interaction: discord.Interaction):
+    embed = discord.Embed(
+        title="CSR SYSTEM Commands",
+        description="Here’s what I can do for you in this guild:",
+        color=discord.Color.green()
+    )
+    embed.add_field(
+        name="/aboutthisbot",
+        value="Shows information and credits for this bot.",
+        inline=False
+    )
+    embed.add_field(
+        name="/announcement <channel> <message>",
+        value="Admin-only. Send an announcement to a selected channel.",
+        inline=False
+    )
+    embed.add_field(
+        name="/sync",
+        value="Admin-only. Sync features.",
+        inline=False
+    )
+    embed.add_field(
+        name="/kick <member> <reason>",
+        value="Admin-only. Kick a user giving a reason.",
+        inline=False
+    )
+    embed.add_field(
+        name="/ban <member> <reason>",
+        value="Admin-only. Ban a user giving a reason.",
+        inline=False
+    )
+    embed.add_field(
+        name="/mute <member> <reason>",
+        value="Admin-only. Mute a user (Muted role needed) giving a reason.",
+        inline=False
+    )
+    embed.add_field(
+        name="Auto Welcome DM",
+        value="Sends a welcome message when anyone joins.",
+        inline=False
+    )
+    embed.set_footer(text="Bot for CSR Guild • v1.0.1")
+    await interaction.response.send_message(embed=embed, ephemeral=True)
+
+bot.run(TOKEN)
