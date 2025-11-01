@@ -1,0 +1,156 @@
+# CSR Bot - Bad Words Filter
+# Lines starting with # are comments and will be ignored
+# Add one word/phrase per line
+# Words are case-insensitive and checked with word boundaries
+
+# Sexual Content
+alaskan pipeline
+anal
+anus
+auto erotic
+autoerotic
+ball gag
+ball gravy
+ball licking
+ball sack
+ball sucking
+bangbros
+bdsm
+big breasts
+big knockers
+big tits
+black cock
+blow job
+blow your load
+blowjob
+bondage
+boner
+booty call
+butt sex
+buttcheeks
+butthole
+buttsex
+camgirl
+camslut
+clit
+clitoris
+cock
+cocks
+creampie
+cum
+cumming
+cumshot
+cumshots
+deep throat
+deepthroat
+dick
+dicks
+diddy
+dildo
+dog style
+doggie style
+doggiestyle
+doggy style
+doggystyle
+ecchi
+echi
+erotic
+erotism
+femdom
+fingerbang
+fingering
+fisting
+foot fetish
+footjob
+gang bang
+gangbang
+gay sex
+giant cock
+girl on top
+goon
+gooning
+group sex
+hand job
+handjob
+hentai
+hooker
+horny
+hot chick
+huge fat
+humping
+intercourse
+jerk off
+kink
+kinky
+leather restraint
+livesex
+masturbate
+masturbating
+masturbation
+milf
+nipple
+nipples
+nude
+orgasm
+panties
+panty
+penis
+phone sex
+piss porn
+porno
+pornography
+pussy
+rape
+raping
+rapist
+s&m
+sadism
+sex
+sexcam
+sexo
+sexuality
+sexually
+sexy
+shaved pussy
+shemale
+skeet
+slut
+spread legs
+strip club
+style doggy
+suicide girls
+threesome
+tit
+tits
+titties
+titty
+upskirt
+vagina
+vibrator
+wet dream
+whore
+worldsex
+zoophilia
+
+# Child Safety (CRITICAL)
+ped0
+pedo
+pedophile
+pedophilia
+pedophilic
+
+# Slurs & Hate Speech
+fag
+faggot
+
+# Add custom words below this line
+# --------------------------------
+
+fuck
+shit
+ass
+bitch
+bastard
+cunt
+retard
+nigger
